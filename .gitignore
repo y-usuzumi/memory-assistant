@@ -1,2 +1,3 @@
 .vscode
 /target
+memory-assistant.sqlite3
