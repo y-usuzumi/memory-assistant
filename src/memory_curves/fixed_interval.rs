@@ -2,6 +2,8 @@ use std::time::{Duration, Instant};
 
 use derive_getters::Getters;
 
+use crate::models::subject::CompositeSubject;
+
 use super::{MemoryCurve, RelearningExpectancy};
 
 #[derive(Getters)]
@@ -16,10 +18,10 @@ impl FixedInterval {
 }
 
 impl MemoryCurve for FixedInterval {
-    fn _next_trigger(&self, td: &crate::subject_desc::SubjectDesc) -> RelearningExpectancy {
-        match td.runs_history().last() {
+    fn _next_trigger(&self, cs: &CompositeSubject) -> RelearningExpectancy {
+        match cs.subject_runs().last() {
             None => RelearningExpectancy::Next(Instant::now()),
-            Some(instant) => RelearningExpectancy::Next(*instant + self.interval),
+            Some(subject_run) => RelearningExpectancy::Next(*subject_run.time() + self.interval),
         }
     }
 }
@@ -28,11 +30,10 @@ impl MemoryCurve for FixedInterval {
 mod tests {
     use std::time::{Duration, Instant};
 
-    use uuid::Uuid;
-
     use crate::{
         memory_curves::{MemoryCurve, RelearningExpectancy},
-        subject_desc::SubjectDesc,
+        models::subject::CompositeSubject,
+        types::UUID,
     };
 
     use super::FixedInterval;
@@ -41,42 +42,39 @@ mod tests {
     fn test_next_trigger_returns_done_when_out_of_runs() {
         let duration = Duration::from_secs(10000);
         let now = Instant::now();
-        let runs_history = vec![now, now + duration, now + 2 * duration];
+        let subject_run_times = vec![now, now + duration, now + 2 * duration];
         let fixed_interval = FixedInterval::new(duration);
         {
-            let subject_desc = SubjectDesc::_new(
-                Uuid::new_v4(),
-                "subject1",
-                "description1",
-                runs_history.clone(),
-                4,
-            );
-            let relearning_expectancy = fixed_interval.next_trigger(&subject_desc);
+            let id = UUID::random();
+            let title = "subject1";
+            let description = "description1";
+            let max_runs = 4;
+            let composite_subject =
+                CompositeSubject::_new(id, title, description, max_runs, &subject_run_times);
+            let relearning_expectancy = fixed_interval.next_trigger(&composite_subject);
             assert_eq!(
                 relearning_expectancy,
                 RelearningExpectancy::Next(now + 3 * Duration::from_secs(10000))
             );
         }
         {
-            let subject_desc = SubjectDesc::_new(
-                Uuid::new_v4(),
-                "subject2",
-                "description2",
-                runs_history.clone(),
-                3,
-            );
-            let relearning_expectancy = fixed_interval.next_trigger(&subject_desc);
+            let id = UUID::random();
+            let title = "subject1";
+            let description = "description1";
+            let max_runs = 3;
+            let composite_subject =
+                CompositeSubject::_new(id, title, description, max_runs, &subject_run_times);
+            let relearning_expectancy = fixed_interval.next_trigger(&composite_subject);
             assert_eq!(relearning_expectancy, RelearningExpectancy::Done);
         }
         {
-            let subject_desc = SubjectDesc::_new(
-                Uuid::new_v4(),
-                "subject3",
-                "description3",
-                runs_history.clone(),
-                0,
-            );
-            let relearning_expectancy = fixed_interval.next_trigger(&subject_desc);
+            let id = UUID::random();
+            let title = "subject1";
+            let description = "description1";
+            let max_runs = 0;
+            let composite_subject =
+                CompositeSubject::_new(id, title, description, max_runs, &subject_run_times);
+            let relearning_expectancy = fixed_interval.next_trigger(&composite_subject);
             assert_eq!(
                 relearning_expectancy,
                 RelearningExpectancy::Next(now + 3 * Duration::from_secs(10000))
