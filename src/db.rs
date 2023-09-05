@@ -1,36 +1,17 @@
-use std::path::Path;
+use std::env;
 
-use crate::subject_desc::{self, SubjectDesc};
+use diesel::Connection;
+use dotenvy::dotenv;
 
-trait Repo<T> {
-    fn get_all() -> Vec<T>;
-}
+const DATABASE_URL: &str = "DATABASE_URL";
 
-struct DB<'a> {
-    filename: &'a Path
-}
+use crate::types::MAResult;
 
-impl <'a> DB<'a> {
-    pub fn new<P: AsRef<Path>>(filename: &'a P) -> Self {
-        Self { filename: filename.as_ref() }
-    }
-}
-
-impl <'a> Repo<SubjectDesc> for DB<'a> {
-    fn get_all() -> Vec<SubjectDesc> {
-            
-    }
+pub fn establish_connection<Conn: Connection>() -> MAResult<Conn> {
+    dotenv()?;
+    let database_url = env::var(DATABASE_URL)?;
+    Ok(Conn::establish(&database_url)?)
 }
 
 #[cfg(test)]
-mod tests {
-    use std::path::Path;
-
-    use super::*;
-
-    #[test]
-    fn test_db() {
-        let db = DB::new(&"/hello.txt");
-        assert_eq!(db.filename, Path::new("/hello.txt"));
-    }
-}
+mod tests {}

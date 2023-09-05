@@ -6,7 +6,7 @@ use super::{MemoryCurve, RelearningExpectancy};
 
 #[derive(Getters)]
 struct FixedInterval {
-    interval: Duration
+    interval: Duration,
 }
 
 impl FixedInterval {
@@ -19,7 +19,7 @@ impl MemoryCurve for FixedInterval {
     fn _next_trigger(&self, td: &crate::subject_desc::SubjectDesc) -> RelearningExpectancy {
         match td.runs_history().last() {
             None => RelearningExpectancy::Next(Instant::now()),
-            Some(instant) => RelearningExpectancy::Next(*instant + self.interval)
+            Some(instant) => RelearningExpectancy::Next(*instant + self.interval),
         }
     }
 }
@@ -30,7 +30,10 @@ mod tests {
 
     use uuid::Uuid;
 
-    use crate::{subject_desc::SubjectDesc, memory_curves::{MemoryCurve, RelearningExpectancy}};
+    use crate::{
+        memory_curves::{MemoryCurve, RelearningExpectancy},
+        subject_desc::SubjectDesc,
+    };
 
     use super::FixedInterval;
 
@@ -41,19 +44,43 @@ mod tests {
         let runs_history = vec![now, now + duration, now + 2 * duration];
         let fixed_interval = FixedInterval::new(duration);
         {
-            let subject_desc = SubjectDesc::_new(Uuid::new_v4(), runs_history.clone(), 4);
+            let subject_desc = SubjectDesc::_new(
+                Uuid::new_v4(),
+                "subject1",
+                "description1",
+                runs_history.clone(),
+                4,
+            );
             let relearning_expectancy = fixed_interval.next_trigger(&subject_desc);
-            assert_eq!(relearning_expectancy, RelearningExpectancy::Next(now + 3 * Duration::from_secs(10000)));
+            assert_eq!(
+                relearning_expectancy,
+                RelearningExpectancy::Next(now + 3 * Duration::from_secs(10000))
+            );
         }
         {
-            let subject_desc = SubjectDesc::_new(Uuid::new_v4(), runs_history.clone(), 3);
+            let subject_desc = SubjectDesc::_new(
+                Uuid::new_v4(),
+                "subject2",
+                "description2",
+                runs_history.clone(),
+                3,
+            );
             let relearning_expectancy = fixed_interval.next_trigger(&subject_desc);
             assert_eq!(relearning_expectancy, RelearningExpectancy::Done);
-        } 
+        }
         {
-            let subject_desc = SubjectDesc::_new(Uuid::new_v4(), runs_history.clone(), 0);
+            let subject_desc = SubjectDesc::_new(
+                Uuid::new_v4(),
+                "subject3",
+                "description3",
+                runs_history.clone(),
+                0,
+            );
             let relearning_expectancy = fixed_interval.next_trigger(&subject_desc);
-            assert_eq!(relearning_expectancy, RelearningExpectancy::Next(now + 3 * Duration::from_secs(10000)));
-        } 
+            assert_eq!(
+                relearning_expectancy,
+                RelearningExpectancy::Next(now + 3 * Duration::from_secs(10000))
+            );
+        }
     }
 }
