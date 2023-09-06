@@ -36,12 +36,12 @@ pub struct DB<'a> {
 }
 
 impl<'a> DB<'a> {
-    pub fn get_subjects(&self) -> MAResult<Vec<Subject>> {
+    pub fn get_subjects(&mut self) -> MAResult<Vec<Subject>> {
         let results = subjects.load(self.connection)?;
         Ok(results)
     }
 
-    pub fn get_subject_runs(&self) -> MAResult<Vec<SubjectRun>> {
+    pub fn get_subject_runs(&mut self) -> MAResult<Vec<SubjectRun>> {
         let results = subject_runs.load(self.connection)?;
         Ok(results)
     }

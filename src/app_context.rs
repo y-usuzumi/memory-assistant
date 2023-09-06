@@ -1,18 +1,16 @@
-use std::time::Instant;
-
+use chrono::NaiveDateTime;
 use derive_getters::Getters;
 
 #[derive(Getters)]
 pub struct AppContext {
-    time: Instant,
+    datetime: NaiveDateTime,
 }
 
 impl AppContext {
     #[cfg(test)]
     pub fn new_random() -> Self {
-        use std::time::Duration;
-
-        let time = Instant::now() + Duration::from_secs(100);
-        Self { time }
+        use chrono::Utc;
+        let datetime = Utc::now().naive_utc();
+        Self { datetime }
     }
 }

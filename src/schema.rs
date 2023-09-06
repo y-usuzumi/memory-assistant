@@ -4,7 +4,7 @@ diesel::table! {
     subject_runs (id) {
         id -> Binary,
         subject_id -> Binary,
-        time -> Integer,
+        datetime -> Text,
     }
 }
 

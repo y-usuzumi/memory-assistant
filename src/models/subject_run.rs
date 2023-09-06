@@ -1,5 +1,4 @@
-use std::time::Instant;
-
+use chrono::NaiveDateTime;
 use derive_getters::Getters;
 use diesel::{
     prelude::{Identifiable, Queryable},
@@ -14,23 +13,24 @@ use crate::{app_context::AppContext, schema::subject_runs, types::UUID};
 pub struct SubjectRun {
     id: UUID,
     subject_id: UUID,
-    time: Instant,
+    #[diesel(sql_type = Integer)]
+    datetime: NaiveDateTime,
 }
 
 impl SubjectRun {
-    pub fn from_current_time(appctx: &AppContext, subject_id: UUID) -> Self {
-        Self::from_time(subject_id, *appctx.time())
+    pub fn from_current_datetime(appctx: &AppContext, subject_id: UUID) -> Self {
+        Self::from_datetime(subject_id, *appctx.datetime())
     }
 
-    pub fn from_time(subject_id: UUID, time: Instant) -> Self {
-        Self::_new(UUID::random(), subject_id, time)
+    pub fn from_datetime(subject_id: UUID, datetime: NaiveDateTime) -> Self {
+        Self::_new(UUID::random(), subject_id, datetime)
     }
 
-    pub(crate) fn _new(id: UUID, subject_id: UUID, time: Instant) -> Self {
+    pub(crate) fn _new(id: UUID, subject_id: UUID, datetime: NaiveDateTime) -> Self {
         Self {
             id,
             subject_id,
-            time,
+            datetime,
         }
     }
 }
